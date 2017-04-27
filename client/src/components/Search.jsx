@@ -4,7 +4,7 @@ class Search extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      terms: 'yo'
+      terms: 'yo mama'
     }
   }
 
