@@ -12,15 +12,28 @@ app.use(express.static(__dirname + '/../client/dist'));
 app.post('/repos/import', function (req, res) {
   var query = req.body.query;
 
+  var repos = [];
+
   var options = {
-  url: 'https://api.github.com/search/repositories?q=user:jlb1982',
-  headers: {
-    'User-Agent': 'jlb1982'
-  }
-};
+    url: 'https://api.github.com/search/repositories?q=user:jlb1982',
+    headers: {
+      'User-Agent': 'jlb1982'
+    }
+  };
 
   request(options, function (err, resp, body) {
-      console.log(body);
+      var parsedBody = JSON.parse(body);
+      repos = parsedBody.items.map( 
+        function(repo) {
+          return {
+            'id': repo.id,
+            'name': repo.name, 
+            'description': repo.description, 
+            'url': repo.url, 
+            'forks': repo.forks
+          }  
+        });
+      console.log(repos);
       // if (!err && res.statusCode == 200) {
       //   var info = JSON.parse(body)
       //   console.log(res);
