@@ -3,7 +3,6 @@ var app = express();
 var bodyParser = require('body-parser');
 var request = require('request');
 var Repo = require('../database/index.js');
-var Promise = require('bluebird')
 
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
@@ -23,37 +22,50 @@ app.post('/repos/import', function (req, res) {
     }
   };
 
+
   request(options, function (err, resp, body) {
     if (!err && resp.statusCode == 200) {  
       var parsedBody = JSON.parse(body);
       
-      reposFromAPI = parsedBody.items.map( 
+      reposFromAPI = parsedBody.items.forEach( 
         function(gitRepo) {
-          var mappedRepo = {
+          //console.log('owner: ', gitRepo.owner.login)
+          var mappedRepo = new Repo ({
             'id': gitRepo.id,
             'name': gitRepo.name, 
+            'owner': gitRepo.owner.login,
             'description': gitRepo.description, 
             'url': gitRepo.url, 
             'forks': gitRepo.forks
-          };
+          });
 
-          var storedRepo = new Repo(gitRepo);
+          //var storedRepo = new Repo(mappedRepo);
 
-          storedRepo.save() 
+          mappedRepo.save() 
+          //console.log(storedRepo);
         });
-        //console.log(res);
       } else {
         console.log(err);
       }
-      console.log('Repos saved!')
-      res.end();
+      console.log('Repos saved!')  
+
   })
 
   res.end();
 });
 
 app.get('/repos', function (req, res) {
-  console.log('get');
+
+  Repo.find({owner: 'jlb1982'}, function (err, data) {
+      if (err) {
+      console.log(err);
+      return;
+    } else {
+      console.log(data)
+    }
+  });
+
+
   res.end();
 });
 

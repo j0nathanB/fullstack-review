@@ -1,11 +1,11 @@
 var mongoose = require('mongoose');
-mongoose.Promise = require('bluebird');
 
 mongoose.connect('mongodb://localhost/fetcher');
 
 var repoSchema = mongoose.Schema({
-  id: Number,
+  id: Number, //{type: Number, unique: true, dropDups: true}, 
   name: String,
+  owner: String,
   description: String,
   url: String,
   forks: Number
