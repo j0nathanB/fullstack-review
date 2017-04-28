@@ -12,18 +12,9 @@ app.use(express.static(__dirname + '/../client/dist'));
 
 app.post('/repos/import', function (req, res) {
   var query = JSON.stringify(req.body.query);
-  var isInDB = false;
+  console.log("POSTED: ", req.body.query)
 
   Repo.find({owner: req.body.query}, function (err, data) {
-    if (err) { 
-      console.log(err);
-      return;
-    } else 
-    if(data.length > 0) {
-      console.log("User already in DB")
-      //send data to the model;
-    } else {
-
       var options = {
         url: 'https://api.github.com/search/repositories?q=user:' + req.body.query,
         headers: {
@@ -47,10 +38,7 @@ app.post('/repos/import', function (req, res) {
                 'forks': gitRepo.forks
               });
 
-              //var storedRepo = new Repo(mappedRepo);
-
               mappedRepo.save() 
-              //console.log(storedRepo);
             });
           } else {
             console.log(err);
@@ -58,23 +46,19 @@ app.post('/repos/import', function (req, res) {
           console.log('Repos saved!')  
       })
       res.end();
-    }
   });
 });
 
 app.get('/repos', function (req, res) {
-
-  Repo.find({owner: 'jlb1982'}, function (err, data) {
+  Repo.find({}, function (err, data) {
       if (err) {
-      console.log(err);
+        return "ERROR";
       return;
     } else {
-      console.log(data)
-    }
+      res.writeHead(200);
+      res.end(JSON.stringify(data));
+    } 
   });
-
-
-  res.end();
 });
 
 var port = 1128;

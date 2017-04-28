@@ -14,6 +14,24 @@ class App extends React.Component {
     }
   }
 
+  componentDidMount() {
+    $.ajax({
+      url: "/repos",
+      type: "GET",
+      success: function(data) {
+        var display = JSON.parse(data);
+        display.sort 
+        this.setState = {repos: display};
+        console.log(this.state.repos);
+        // this.state = {repos: display};       
+        //console.log(data);
+      }.bind(this),
+      error: function(err) {
+        console.log('ERROR: ', err);
+      }
+    });
+  }
+
   search (term) {
     $.post("/repos/import", {'query':`${term}`});
   }
@@ -21,7 +39,8 @@ class App extends React.Component {
   render () {
     return (<div>
       <h1>Github Fetcher</h1>
-      <RepoList repos={this.state.repos}/>
+      {this.state.repos.map( repo => <RepoList repo={repo} />)}
+      There... are...  {this.state.repos.length} lights!
       <Search onSearch={this.search.bind(this)}/>
     </div>)
   }
