@@ -12,46 +12,54 @@ app.use(express.static(__dirname + '/../client/dist'));
 
 app.post('/repos/import', function (req, res) {
   var query = JSON.stringify(req.body.query);
+  var isInDB = false;
 
-  var reposFromAPI = [];
+  Repo.find({owner: req.body.query}, function (err, data) {
+    if (err) { 
+      console.log(err);
+      return;
+    } else 
+    if(data.length > 0) {
+      console.log("User already in DB")
+      //send data to the model;
+    } else {
 
-  var options = {
-    url: 'https://api.github.com/search/repositories?q=user:' + query,
-    headers: {
-      'User-Agent': 'jlb1982'
+      var options = {
+        url: 'https://api.github.com/search/repositories?q=user:' + req.body.query,
+        headers: {
+          'User-Agent': 'jlb1982'
+        }
+      };
+
+      request(options, function (err, resp, body) {
+        if (!err && resp.statusCode == 200) {  
+          var parsedBody = JSON.parse(body);
+          
+          parsedBody.items.forEach( 
+            function(gitRepo) {
+              //console.log('owner: ', gitRepo.owner.login)
+              var mappedRepo = new Repo ({
+                'id': gitRepo.id,
+                'name': gitRepo.name, 
+                'owner': gitRepo.owner.login,
+                'description': gitRepo.description, 
+                'url': gitRepo.url, 
+                'forks': gitRepo.forks
+              });
+
+              //var storedRepo = new Repo(mappedRepo);
+
+              mappedRepo.save() 
+              //console.log(storedRepo);
+            });
+          } else {
+            console.log(err);
+          }
+          console.log('Repos saved!')  
+      })
+      res.end();
     }
-  };
-
-
-  request(options, function (err, resp, body) {
-    if (!err && resp.statusCode == 200) {  
-      var parsedBody = JSON.parse(body);
-      
-      reposFromAPI = parsedBody.items.forEach( 
-        function(gitRepo) {
-          //console.log('owner: ', gitRepo.owner.login)
-          var mappedRepo = new Repo ({
-            'id': gitRepo.id,
-            'name': gitRepo.name, 
-            'owner': gitRepo.owner.login,
-            'description': gitRepo.description, 
-            'url': gitRepo.url, 
-            'forks': gitRepo.forks
-          });
-
-          //var storedRepo = new Repo(mappedRepo);
-
-          mappedRepo.save() 
-          //console.log(storedRepo);
-        });
-      } else {
-        console.log(err);
-      }
-      console.log('Repos saved!')  
-
-  })
-
-  res.end();
+  });
 });
 
 app.get('/repos', function (req, res) {
